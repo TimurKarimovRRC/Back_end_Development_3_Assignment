@@ -27,3 +27,20 @@ export async function createEvent(createEventInput: CreateEventInput): Promise<E
     ...newEventRecord
   };
 }
+
+import { getDocuments } from "../repositories/firestoreRepository";
+
+export async function getAllEvents(): Promise<Event[]> {
+  const querySnapshot: FirebaseFirestore.QuerySnapshot = await getDocuments(eventsCollectionName);
+
+  const events: Event[] = querySnapshot.docs.map((documentSnapshot: FirebaseFirestore.QueryDocumentSnapshot) => {
+    const documentData = documentSnapshot.data() as Omit<Event, "id">;
+
+    return {
+      id: documentSnapshot.id,
+      ...(documentData as Omit<Event, "id">)
+    };
+  });
+
+  return events;
+}

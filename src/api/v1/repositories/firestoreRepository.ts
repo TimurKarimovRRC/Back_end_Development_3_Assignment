@@ -32,3 +32,14 @@ export const createDocument = async <T>(
     throw new Error(`Failed to create document in ${collectionName}: ${errorMessage}`);
   }
 };
+
+export const getDocuments = async (
+  collectionName: string
+): Promise<FirebaseFirestore.QuerySnapshot> => {
+  try {
+    return await db.collection(collectionName).get();
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to fetch documents from ${collectionName}: ${errorMessage}`);
+  }
+};

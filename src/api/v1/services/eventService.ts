@@ -3,6 +3,7 @@ import { CreateEventInput, Event } from "../models/eventModel";
 import { createDocument, getDocumentById, getDocuments } from "../repositories/firestoreRepository";
 import { updateDocument } from "../repositories/firestoreRepository";
 import { UpdateEventInput } from "../models/eventModel";
+import { deleteDocument } from "../repositories/firestoreRepository";
 
 const eventsCollectionName: string = "events";
 
@@ -80,4 +81,16 @@ export async function updateEventById(
 
   const updatedEvent: Event | null = await getEventById(eventId);
   return updatedEvent;
+}
+
+export async function deleteEventById(eventId: string): Promise<boolean> {
+  const existingEvent: Event | null = await getEventById(eventId);
+
+  if (!existingEvent) {
+    return false;
+  }
+
+  await deleteDocument(eventsCollectionName, eventId);
+
+  return true;
 }

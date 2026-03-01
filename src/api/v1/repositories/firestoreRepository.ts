@@ -74,3 +74,25 @@ export const updateDocument = async <T>(
     throw new Error(`Failed to update document ${id} in ${collectionName}: ${errorMessage}`);
   }
 };
+
+
+export const deleteDocument = async (
+  collectionName: string,
+  id: string,
+  transaction?: FirebaseFirestore.Transaction
+): Promise<void> => {
+  try {
+    const documentReference: FirebaseFirestore.DocumentReference = db
+      .collection(collectionName)
+      .doc(id);
+
+    if (transaction) {
+      transaction.delete(documentReference);
+    } else {
+      await documentReference.delete();
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to delete document ${id} from ${collectionName}: ${errorMessage}`);
+  }
+};

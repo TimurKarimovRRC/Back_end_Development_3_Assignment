@@ -18,4 +18,5 @@ export interface UpdateEventInput {
   name?: string;
   date?: string;
   capacity?: number;
+  registrationCount?: number;
 }

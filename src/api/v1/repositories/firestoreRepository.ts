@@ -43,3 +43,20 @@ export const getDocuments = async (
     throw new Error(`Failed to fetch documents from ${collectionName}: ${errorMessage}`);
   }
 };
+
+export const getDocumentById = async (
+  collectionName: string,
+  id: string
+): Promise<FirebaseFirestore.DocumentSnapshot | null> => {
+  try {
+    const documentSnapshot: FirebaseFirestore.DocumentSnapshot = await db
+      .collection(collectionName)
+      .doc(id)
+      .get();
+
+    return documentSnapshot.exists ? documentSnapshot : null;
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to fetch document ${id} from ${collectionName}: ${errorMessage}`);
+  }
+};

@@ -1,5 +1,6 @@
-import { createDocument } from "../repositories/firestoreRepository";
+import { DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot } from "firebase-admin/firestore";
 import { CreateEventInput, Event } from "../models/eventModel";
+import { createDocument, getDocumentById, getDocuments } from "../repositories/firestoreRepository";
 
 const eventsCollectionName: string = "events";
 
@@ -28,12 +29,10 @@ export async function createEvent(createEventInput: CreateEventInput): Promise<E
   };
 }
 
-import { getDocuments } from "../repositories/firestoreRepository";
-
 export async function getAllEvents(): Promise<Event[]> {
-  const querySnapshot: FirebaseFirestore.QuerySnapshot = await getDocuments(eventsCollectionName);
+  const querySnapshot: QuerySnapshot = await getDocuments(eventsCollectionName);
 
-  const events: Event[] = querySnapshot.docs.map((documentSnapshot: FirebaseFirestore.QueryDocumentSnapshot) => {
+  const events: Event[] = querySnapshot.docs.map((documentSnapshot: QueryDocumentSnapshot) => {
     const documentData = documentSnapshot.data() as Omit<Event, "id">;
 
     return {
@@ -43,4 +42,19 @@ export async function getAllEvents(): Promise<Event[]> {
   });
 
   return events;
+}
+
+export async function getEventById(eventId: string): Promise<Event | null> {
+  const documentSnapshot: DocumentSnapshot | null = await getDocumentById(eventsCollectionName, eventId);
+
+  if (!documentSnapshot) {
+    return null;
+  }
+
+  const documentData = documentSnapshot.data() as Omit<Event, "id">;
+
+  return {
+    id: documentSnapshot.id,
+    ...(documentData as Omit<Event, "id">)
+  };
 }

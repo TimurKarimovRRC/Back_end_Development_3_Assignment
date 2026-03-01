@@ -1,6 +1,8 @@
 import { DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot } from "firebase-admin/firestore";
 import { CreateEventInput, Event } from "../models/eventModel";
 import { createDocument, getDocumentById, getDocuments } from "../repositories/firestoreRepository";
+import { updateDocument } from "../repositories/firestoreRepository";
+import { UpdateEventInput } from "../models/eventModel";
 
 const eventsCollectionName: string = "events";
 
@@ -57,4 +59,25 @@ export async function getEventById(eventId: string): Promise<Event | null> {
     id: documentSnapshot.id,
     ...(documentData as Omit<Event, "id">)
   };
+}
+
+export async function updateEventById(
+  eventId: string,
+  updateEventInput: UpdateEventInput
+): Promise<Event | null> {
+  const existingEvent: Event | null = await getEventById(eventId);
+
+  if (!existingEvent) {
+    return null;
+  }
+
+  const updatePayload: Partial<Omit<Event, "id">> = {
+    ...updateEventInput,
+    updatedAt: new Date()
+  };
+
+  await updateDocument<Omit<Event, "id">>(eventsCollectionName, eventId, updatePayload);
+
+  const updatedEvent: Event | null = await getEventById(eventId);
+  return updatedEvent;
 }

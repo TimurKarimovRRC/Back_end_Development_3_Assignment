@@ -4,6 +4,8 @@ import { CreateEventInput, Event } from "../models/eventModel";
 import { createEvent } from "../services/eventService";
 import { getAllEvents } from "../services/eventService";
 import { getEventById } from "../services/eventService";
+import { updateEventById } from "../services/eventService";
+import { UpdateEventInput, Event } from "../models/eventModel";
 
 
 
@@ -52,6 +54,27 @@ export async function getEventByIdController(request: Request, response: Respons
   } catch (_error: unknown) {
     response.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       error: "Failed to fetch event"
+    });
+  }
+}
+
+
+export async function updateEventController(request: Request, response: Response): Promise<void> {
+  try {
+    const eventId: string = request.params.id;
+    const updates: UpdateEventInput = request.body as UpdateEventInput;
+
+    const updatedEvent: Event | null = await updateEventById(eventId, updates);
+
+    if (!updatedEvent) {
+      response.status(HTTP_STATUS.NOT_FOUND).json({ error: "Event not found" });
+      return;
+    }
+
+    response.status(HTTP_STATUS.OK).json(updatedEvent);
+  } catch (_error: unknown) {
+    response.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      error: "Failed to update event"
     });
   }
 }

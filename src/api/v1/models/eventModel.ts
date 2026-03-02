@@ -1,9 +1,14 @@
+export type EventStatus = "active" | "cancelled" | "completed";
+export type EventCategory = "conference" | "workshop" | "meetup" | "seminar" | "general";
+
 export interface Event {
   id: string;
   name: string;
   date: string;
   capacity: number;
   registrationCount: number;
+  status: EventStatus;
+  category: EventCategory;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -12,6 +17,9 @@ export interface CreateEventInput {
   name: string;
   date: string;
   capacity: number;
+  registrationCount?: number;
+  status?: EventStatus;
+  category?: EventCategory;
 }
 
 export interface UpdateEventInput {
@@ -19,4 +27,6 @@ export interface UpdateEventInput {
   date?: string;
   capacity?: number;
   registrationCount?: number;
+  status?: EventStatus;
+  category?: EventCategory;
 }

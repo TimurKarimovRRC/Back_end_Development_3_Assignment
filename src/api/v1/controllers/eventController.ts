@@ -1,15 +1,19 @@
 import { Request, Response } from "express";
 import { HTTP_STATUS } from "../../../constants/httpConstants";
-import { CreateEventInput, Event } from "../models/eventModel";
-import { createEvent } from "../services/eventService";
-import { getAllEvents } from "../services/eventService";
-import { getEventById } from "../services/eventService";
-import { updateEventById } from "../services/eventService";
-import { UpdateEventInput} from "../models/eventModel";
-import { deleteEventById } from "../services/eventService";
+import { CreateEventInput, Event, UpdateEventInput } from "../models/eventModel";
+import {
+  createEvent,
+  deleteEventById,
+  getAllEvents,
+  getEventById,
+  updateEventById
+} from "../services/eventService";
 
-
-
+function getSingleParam(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) && typeof value[0] === "string") return value[0];
+  return undefined;
+}
 
 export async function createEventController(request: Request, response: Response): Promise<void> {
   try {
@@ -42,7 +46,12 @@ export async function getAllEventsController(_request: Request, response: Respon
 
 export async function getEventByIdController(request: Request, response: Response): Promise<void> {
   try {
-    const eventId: string = request.params.id;
+    const eventId: string | undefined = getSingleParam(request.params.id);
+
+    if (!eventId) {
+      response.status(HTTP_STATUS.BAD_REQUEST).json({ error: "Event id is required" });
+      return;
+    }
 
     const event: Event | null = await getEventById(eventId);
 
@@ -59,10 +68,15 @@ export async function getEventByIdController(request: Request, response: Respons
   }
 }
 
-
 export async function updateEventController(request: Request, response: Response): Promise<void> {
   try {
-    const eventId: string = request.params.id;
+    const eventId: string | undefined = getSingleParam(request.params.id);
+
+    if (!eventId) {
+      response.status(HTTP_STATUS.BAD_REQUEST).json({ error: "Event id is required" });
+      return;
+    }
+
     const updates: UpdateEventInput = request.body as UpdateEventInput;
 
     const updatedEvent: Event | null = await updateEventById(eventId, updates);
@@ -82,7 +96,12 @@ export async function updateEventController(request: Request, response: Response
 
 export async function deleteEventController(request: Request, response: Response): Promise<void> {
   try {
-    const eventId: string = request.params.id;
+    const eventId: string | undefined = getSingleParam(request.params.id);
+
+    if (!eventId) {
+      response.status(HTTP_STATUS.BAD_REQUEST).json({ error: "Event id is required" });
+      return;
+    }
 
     const isDeleted: boolean = await deleteEventById(eventId);
 

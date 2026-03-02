@@ -12,6 +12,8 @@ export default tseslint.config(
             "jest.config.ts",
         ],
     },
+
+    
     eslint.configs.recommended,
     ...tseslint.configs.recommended,
     {

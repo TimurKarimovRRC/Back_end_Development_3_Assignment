@@ -1,4 +1,4 @@
-import { createEvent, getAllEvents, getEventById } from "../src/api/v1/services/eventService";
+import { createEvent, getAllEvents, getEventById, updateEventById, deleteEventById } from "../src/api/v1/services/eventService";
 import * as firestoreRepository from "../src/api/v1/repositories/firestoreRepository";
 
 
@@ -74,10 +74,56 @@ describe("eventService", () => {
   mockedGetDocumentById.mockResolvedValue(null);
 
   // Act
-  const result = await getEventById("missing-id");
+  const result = await getEventById("missing id");
 
   // Assert
   expect(mockedGetDocumentById).toHaveBeenCalledTimes(1);
   expect(result).toBeNull();
+});
+
+it("it should update an event and return the updated result", async () => {
+  // Arrange
+  const mockedGetDocumentById = firestoreRepository.getDocumentById as unknown as jest.Mock;
+  const mockedUpdateDocument = firestoreRepository.updateDocument as unknown as jest.Mock;
+
+  const existingSnapshot = {
+    id: "event-1",
+    data: () => ({
+      name: "Old Name",
+      date: "2025-03-15T09:00:00.000Z",
+      capacity: 100,
+      registrationCount: 0,
+      createdAt: new Date("2025-03-01T00:00:00.000Z"),
+      updatedAt: new Date("2025-03-01T00:00:00.000Z")
+    })
+  };
+
+  const updatedSnapshot = {
+    id: "event-1",
+    data: () => ({
+      name: "New Name",
+      date: "2025-03-15T09:00:00.000Z",
+      capacity: 100,
+      registrationCount: 0,
+      createdAt: new Date("2025-03-01T00:00:00.000Z"),
+      updatedAt: new Date("2025-03-02T00:00:00.000Z")
+    })
+  };
+
+  mockedGetDocumentById
+    .mockResolvedValueOnce(existingSnapshot) // first read
+    .mockResolvedValueOnce(updatedSnapshot); // read after update
+
+  mockedUpdateDocument.mockResolvedValue(undefined);
+
+  // Act
+  const result = await updateEventById("event-1", { name: "New Name" });
+
+  // Assert
+  expect(mockedUpdateDocument).toHaveBeenCalledTimes(1);
+  expect(mockedGetDocumentById).toHaveBeenCalledTimes(2);
+  expect(result).not.toBeNull();
+  expect(result?.id).toBe("event-1");
+  expect(result?.name).toBe("New Name");
 });
 });

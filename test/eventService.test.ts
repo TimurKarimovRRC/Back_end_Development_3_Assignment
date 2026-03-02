@@ -126,4 +126,33 @@ it("it should update an event and return the updated result", async () => {
   expect(result?.id).toBe("event-1");
   expect(result?.name).toBe("New Name");
 });
+
+it("it should delete an event and return true when event exists", async () => {
+  // Arrange
+  const mockedGetDocumentById = firestoreRepository.getDocumentById as unknown as jest.Mock;
+  const mockedDeleteDocument = firestoreRepository.deleteDocument as unknown as jest.Mock;
+
+  const existingSnapshot = {
+    id: "event-1",
+    data: () => ({
+      name: "Event One",
+      date: "2025-03-15T09:00:00.000Z",
+      capacity: 100,
+      registrationCount: 0,
+      createdAt: new Date("2025-03-01T00:00:00.000Z"),
+      updatedAt: new Date("2025-03-01T00:00:00.000Z")
+    })
+  };
+
+  mockedGetDocumentById.mockResolvedValue(existingSnapshot);
+  mockedDeleteDocument.mockResolvedValue(undefined);
+
+  // Act
+  const result = await deleteEventById("event-1");
+
+  // Assert
+  expect(mockedGetDocumentById).toHaveBeenCalledTimes(1);
+  expect(mockedDeleteDocument).toHaveBeenCalledTimes(1);
+  expect(result).toBe(true);
+});
 });

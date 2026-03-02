@@ -1,5 +1,6 @@
-import { createEvent, getAllEvents } from "../src/api/v1/services/eventService";
+import { createEvent, getAllEvents, getEventById } from "../src/api/v1/services/eventService";
 import * as firestoreRepository from "../src/api/v1/repositories/firestoreRepository";
+
 
 jest.mock("../src/api/v1/repositories/firestoreRepository");
 
@@ -67,4 +68,16 @@ describe("eventService", () => {
     expect(result[1].id).toBe("event-2");
     expect(result[1].capacity).toBe(50);
   });
+  it("it should return null when event does not exist", async () => {
+  // Arrange
+  const mockedGetDocumentById = firestoreRepository.getDocumentById as unknown as jest.Mock;
+  mockedGetDocumentById.mockResolvedValue(null);
+
+  // Act
+  const result = await getEventById("missing-id");
+
+  // Assert
+  expect(mockedGetDocumentById).toHaveBeenCalledTimes(1);
+  expect(result).toBeNull();
+});
 });

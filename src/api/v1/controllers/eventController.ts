@@ -5,7 +5,7 @@ import { createEvent } from "../services/eventService";
 import { getAllEvents } from "../services/eventService";
 import { getEventById } from "../services/eventService";
 import { updateEventById } from "../services/eventService";
-import { UpdateEventInput, Event } from "../models/eventModel";
+import { UpdateEventInput} from "../models/eventModel";
 import { deleteEventById } from "../services/eventService";
 
 

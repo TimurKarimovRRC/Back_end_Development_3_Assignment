@@ -1,9 +1,6 @@
-import { DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot } from "firebase-admin/firestore";
-import { CreateEventInput, Event } from "../models/eventModel";
-import { createDocument, getDocumentById, getDocuments } from "../repositories/firestoreRepository";
-import { updateDocument } from "../repositories/firestoreRepository";
-import { UpdateEventInput } from "../models/eventModel";
-import { deleteDocument } from "../repositories/firestoreRepository";
+import { createDocument, deleteDocument, getDocumentById, getDocuments, updateDocument } from "../repositories/firestoreRepository";
+import { DocumentSnapshot } from "firebase-admin/firestore";
+import { CreateEventInput, Event, UpdateEventInput } from "../models/eventModel";
 
 const eventsCollectionName: string = "events";
 
@@ -16,7 +13,9 @@ export async function createEvent(createEventInput: CreateEventInput): Promise<E
     name: createEventInput.name,
     date: createEventInput.date,
     capacity: createEventInput.capacity,
-    registrationCount: 0,
+    registrationCount: createEventInput.registrationCount ?? 0,
+    status: createEventInput.status ?? "active",
+    category: createEventInput.category ?? "general",
     createdAt: now,
     updatedAt: now
   };
@@ -33,14 +32,14 @@ export async function createEvent(createEventInput: CreateEventInput): Promise<E
 }
 
 export async function getAllEvents(): Promise<Event[]> {
-  const querySnapshot: QuerySnapshot = await getDocuments(eventsCollectionName);
+  const querySnapshot: FirebaseFirestore.QuerySnapshot = await getDocuments(eventsCollectionName);
 
-  const events: Event[] = querySnapshot.docs.map((documentSnapshot: QueryDocumentSnapshot) => {
-    const documentData = documentSnapshot.data() as Omit<Event, "id">;
+  const events: Event[] = querySnapshot.docs.map((documentSnapshot: FirebaseFirestore.QueryDocumentSnapshot) => {
+    const documentData: Omit<Event, "id"> = documentSnapshot.data() as Omit<Event, "id">;
 
     return {
       id: documentSnapshot.id,
-      ...(documentData as Omit<Event, "id">)
+      ...documentData
     };
   });
 
@@ -54,43 +53,55 @@ export async function getEventById(eventId: string): Promise<Event | null> {
     return null;
   }
 
-  const documentData = documentSnapshot.data() as Omit<Event, "id">;
+  const documentData: Omit<Event, "id"> = documentSnapshot.data() as Omit<Event, "id">;
 
   return {
     id: documentSnapshot.id,
-    ...(documentData as Omit<Event, "id">)
+    ...documentData
   };
 }
 
-export async function updateEventById(
-  eventId: string,
-  updateEventInput: UpdateEventInput
-): Promise<Event | null> {
+export async function updateEventById(eventId: string, updates: UpdateEventInput): Promise<Event | null> {
   const existingEvent: Event | null = await getEventById(eventId);
-
   if (!existingEvent) {
     return null;
   }
 
-  const updatePayload: Partial<Omit<Event, "id">> = {
-    ...updateEventInput,
-    updatedAt: new Date()
+  const now: Date = new Date();
+
+  const updatedRecord: NewEventRecord = {
+    ...existingEvent,
+    ...updates,
+    id: undefined as never,
+    updatedAt: now
   };
 
-  await updateDocument<Omit<Event, "id">>(eventsCollectionName, eventId, updatePayload);
+  const toUpdate: Partial<NewEventRecord> = {
+    name: updatedRecord.name,
+    date: updatedRecord.date,
+    capacity: updatedRecord.capacity,
+    registrationCount: updatedRecord.registrationCount,
+    status: updatedRecord.status,
+    category: updatedRecord.category,
+    updatedAt: updatedRecord.updatedAt
+  };
 
-  const updatedEvent: Event | null = await getEventById(eventId);
-  return updatedEvent;
+  await updateDocument<NewEventRecord>(eventsCollectionName, eventId, toUpdate);
+
+  return {
+    id: eventId,
+    ...existingEvent,
+    ...updates,
+    updatedAt: now
+  };
 }
 
 export async function deleteEventById(eventId: string): Promise<boolean> {
   const existingEvent: Event | null = await getEventById(eventId);
-
   if (!existingEvent) {
     return false;
   }
 
   await deleteDocument(eventsCollectionName, eventId);
-
   return true;
 }

@@ -93,35 +93,23 @@ it("it should update an event and return the updated result", async () => {
       date: "2025-03-15T09:00:00.000Z",
       capacity: 100,
       registrationCount: 0,
+      status: "active",
+      category: "general",
       createdAt: new Date("2025-03-01T00:00:00.000Z"),
       updatedAt: new Date("2025-03-01T00:00:00.000Z")
     })
   };
 
-  const updatedSnapshot = {
-    id: "event-1",
-    data: () => ({
-      name: "New Name",
-      date: "2025-03-15T09:00:00.000Z",
-      capacity: 100,
-      registrationCount: 0,
-      createdAt: new Date("2025-03-01T00:00:00.000Z"),
-      updatedAt: new Date("2025-03-02T00:00:00.000Z")
-    })
-  };
-
-  mockedGetDocumentById
-    .mockResolvedValueOnce(existingSnapshot) // first read
-    .mockResolvedValueOnce(updatedSnapshot); // read after update
-
+  mockedGetDocumentById.mockResolvedValue(existingSnapshot);
   mockedUpdateDocument.mockResolvedValue(undefined);
 
   // Act
   const result = await updateEventById("event-1", { name: "New Name" });
 
   // Assert
+  expect(mockedGetDocumentById).toHaveBeenCalledTimes(1);
   expect(mockedUpdateDocument).toHaveBeenCalledTimes(1);
-  expect(mockedGetDocumentById).toHaveBeenCalledTimes(2);
+
   expect(result).not.toBeNull();
   expect(result?.id).toBe("event-1");
   expect(result?.name).toBe("New Name");
